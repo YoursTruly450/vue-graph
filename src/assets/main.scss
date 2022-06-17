@@ -1,0 +1,9 @@
+
+  @mixin font-type($fontSize, $lineHeight, $fontColor, $fontWeight) {
+    font-family: "Helvetica", sans-serif;
+    font-style: normal;
+    font-size: $fontSize;
+    line-height: $lineHeight;
+    color: $fontColor;
+    font-weight: $fontWeight;
+  }

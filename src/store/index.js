@@ -1,17 +1,21 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
+import graphService from './modules/graph';
 
-Vue.use(Vuex)
+import Vue from 'vue';
+import Vuex from 'vuex';
+import axios from 'axios';
+
+Vue.use(Vuex);
+
+axios.defaults.baseURL = `${process.env.VUE_APP_PATH}/api/`;
+axios.interceptors.response.use(function (response) {
+  return response;
+}, function (error) {
+    console.error(error);
+    return Promise.reject(error);
+});
 
 export default new Vuex.Store({
-  state: {
-  },
-  getters: {
-  },
-  mutations: {
-  },
-  actions: {
-  },
   modules: {
+    graphService,
   }
 })
