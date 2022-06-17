@@ -1,6 +1,7 @@
 <template>
   <div class="graph-view">
     {{nodes}}
+    {{links}}
     <svg
       xmlns="http://www.w3.org/2000/svg"
       id="graph"
@@ -58,16 +59,50 @@ export default {
         });
         arr= arr.concat(attr);
       }
-      console.log(arr);
       return arr;
     },
     links() {
       let arr = [];
-      // if (this.nodes.length > 0) {
-      //   this.nodes.forEach((link, index) => {
-      //   });
-      // }
-      console.log(arr);
+      if (this.nodes.length > 0) {
+        this.nodes.forEach((link, index) => {
+          if(link.targets && link.targets.length > 0)  {
+            const source = {
+              index,
+              id: link.id
+            };
+            link.targets.forEach((item) => {
+              const target = {
+                index: this.nodes.findIndex((el) => el.id === item),
+                id: item,
+              }
+              const ind = arr.length;
+              arr.push({
+                index: ind,
+                source,
+                target,
+                name: item,
+              });
+            });
+          }
+          if(link.source || link.source === 0) {
+            const source = {
+              index: link.source,
+              id: this.nodes[link.source].id
+            };
+            const target = {
+              index,
+              id: link.id
+            };
+            const ind = arr.length;
+            arr.push({
+              index: ind,
+              source,
+              target,
+              name: link.id
+            });
+          }
+        });
+      }
       return arr;
     },
   },
