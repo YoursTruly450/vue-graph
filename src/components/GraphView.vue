@@ -21,7 +21,9 @@ export default {
     return {
       svg: null,
       container: null,
-      graphLayout: null,
+      forceSimulation: null,
+      link: null,
+      node: null,
     };
   },
   computed: {
@@ -101,9 +103,10 @@ export default {
   mounted() {
     this.svg = d3.select('#graph');
     this.svg.attr('width', this.$el.clientWidth).attr('height', this.$el.clientHeight);
-    this.container = this.svg.append('g');
-
+    
     window.addEventListener('resize', this.onResizeWindow);
+
+    this.updateGraph();
   },
   beforeDestroy() {
     window.removeEventListener('resize', this.onResizeWindow);
@@ -112,22 +115,30 @@ export default {
     onResizeWindow() {
       this.svg.attr('width', this.$el.clientWidth).attr('height', this.$el.clientHeight);
     },
-    updateGraph(data) {
+    updateGraph() {
       const width = this.$el.clientWidth;
       const height = this.$el.clientHeight;
 
-      console.log(data);
-      this.graphLayout = d3.forceSimulation(data.nodes)
+      this.container = this.svg.append('g');
+
+      this.svg.call(
+        d3.zoom()
+          .scaleExtent([.1, 4])
+          .on('zoom', (d) => { this.container.attr('transform', d.transform) })
+      );
+
+      console.log(this.graphData);
+      let forceSimulation = d3.forceSimulation(this.graphData.nodes)
         .force('charge', d3.forceManyBody().strength(-3000))
         .force('center', d3.forceCenter(width / 2, height / 2))
         .force('x', d3.forceX(width / 2).strength(1))
         .force('y', d3.forceY(height / 2).strength(1))
-        .force('link', d3.forceLink(data.links).id((d) => d.id).distance(50).strength(1))
+        .force('link', d3.forceLink(this.graphData.links).id((d) => d.id).distance(50).strength(1))
         .on('tick', ticked);
 
       let link = this.container.append('g').attr('class', 'links')
         .selectAll('line')
-        .data(data.links)
+        .data(this.graphData.links)
         .enter()
         .append('line')
         .attr('stroke', '#aaa')
@@ -135,11 +146,16 @@ export default {
 
       let node = this.container.append('g').attr('class', 'nodes')
         .selectAll('g')
-        .data(data.nodes)
+        .data(this.graphData.nodes)
         .enter()
         .append('circle')
         .attr('r', 5)
-        .attr('fill', function (d) { return d.group === 'node' ? 'red' : 'green' });
+        .attr('fill', function (d) { return d.group === 'node' ? 'red' : 'green' })
+        .call(d3.drag()
+          .on('start', started)
+          .on('drag', dragged)
+          .on('end', ended)
+        );
 
       function ticked () {
         node.call(updateNode)
@@ -160,19 +176,43 @@ export default {
       }
 
       function fixna (x) {
-        if (isFinite(x)) return x
-        return 0
+        if (isFinite(x)) return x;
+        return 0;
+      }
+
+      // drag
+      function started (event, d) {
+        if (!event.active) {
+          forceSimulation.alphaTarget(0.8).restart()
+        }
+        d.fx = d.x
+        d.fy = d.y
+      }
+      function dragged (event, d) {
+        d.fx = event.x
+        d.fy = event.y
+      }
+      function ended (event, d) {
+        if (!event.active) {
+          forceSimulation.alphaTarget(0)
+        }
+        d.fx = null
+        d.fy = null
       }
     },
 
   },
   watch: {
-    graphData: {
-      deep: true,
-      handler(nv) {
-        this.updateGraph(nv);
-      },
-    },
+    // graphData: {
+    //   deep: true,
+    //   handler(nv) {
+    //     this.updateGraph(nv);
+    //   },
+    // },
+    doc() {
+      this.svg.selectAll('g').remove();
+      this.updateGraph();
+    }
   },
 }
 </script>
