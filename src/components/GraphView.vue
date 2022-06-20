@@ -128,15 +128,15 @@ export default {
       );
 
       console.log(this.graphData);
-      let forceSimulation = d3.forceSimulation(this.graphData.nodes)
+      this.forceSimulation = d3.forceSimulation(this.graphData.nodes)
         .force('charge', d3.forceManyBody().strength(-3000))
         .force('center', d3.forceCenter(width / 2, height / 2))
         .force('x', d3.forceX(width / 2).strength(1))
         .force('y', d3.forceY(height / 2).strength(1))
         .force('link', d3.forceLink(this.graphData.links).id((d) => d.id).distance(50).strength(1))
-        .on('tick', ticked);
+        .on('tick', this.ticked);
 
-      let link = this.container.append('g').attr('class', 'links')
+      this.link = this.container.append('g').attr('class', 'links')
         .selectAll('line')
         .data(this.graphData.links)
         .enter()
@@ -144,7 +144,7 @@ export default {
         .attr('stroke', '#aaa')
         .attr('stroke-width', '1px');
 
-      let node = this.container.append('g').attr('class', 'nodes')
+      this.node = this.container.append('g').attr('class', 'nodes')
         .selectAll('g')
         .data(this.graphData.nodes)
         .enter()
@@ -152,63 +152,50 @@ export default {
         .attr('r', 5)
         .attr('fill', function (d) { return d.group === 'node' ? 'red' : 'green' })
         .call(d3.drag()
-          .on('start', started)
-          .on('drag', dragged)
-          .on('end', ended)
+          .on('start', this.dragStarted)
+          .on('drag', this.dragged)
+          .on('end', this.dragEnded)
         );
-
-      function ticked () {
-        node.call(updateNode)
-        link.call(updateLink)
-      }
-
-      function updateLink (link) {
-        link.attr('x1', function (d) { return fixna(d.source.x) })
-          .attr('y1', function (d) { return fixna(d.source.y) })
-          .attr('x2', function (d) { return fixna(d.target.x) })
-          .attr('y2', function (d) { return fixna(d.target.y) })
-      }
-
-      function updateNode (node) {
-        node.attr('transform', function (d) {
-          return 'translate(' + fixna(d.x) + ',' + fixna(d.y) + ')'
-        })
-      }
-
-      function fixna (x) {
-        if (isFinite(x)) return x;
-        return 0;
-      }
-
-      // drag
-      function started (event, d) {
-        if (!event.active) {
-          forceSimulation.alphaTarget(0.8).restart()
-        }
-        d.fx = d.x
-        d.fy = d.y
-      }
-      function dragged (event, d) {
-        d.fx = event.x
-        d.fy = event.y
-      }
-      function ended (event, d) {
-        if (!event.active) {
-          forceSimulation.alphaTarget(0)
-        }
-        d.fx = null
-        d.fy = null
-      }
     },
-
+    dragStarted(event, d) {
+      if (!event.active) {
+        this.forceSimulation.alphaTarget(0.8).restart();
+      }
+      d.fx = d.x;
+      d.fy = d.y;
+    },
+    dragged(event, d) {
+      d.fx = event.x;
+      d.fy = event.y;
+    },
+    dragEnded(event, d) {
+      if (!event.active) {
+        this.forceSimulation.alphaTarget(0);
+      }
+      d.fx = null;
+      d.fy = null;
+    },
+    ticked() {
+      this.node.call(this.updateNode);
+      this.link.call(this.updateLink);
+    },
+    updateLink(link) {
+      link.attr('x1', (d) => { return this.fixna(d.source.x) })
+        .attr('y1', (d) => { return this.fixna(d.source.y) })
+        .attr('x2', (d) => { return this.fixna(d.target.x) })
+        .attr('y2', (d) => { return this.fixna(d.target.y) })
+    },
+    updateNode(node) {
+      node.attr('transform', (d) => {
+        return 'translate(' + this.fixna(d.x) + ',' + this.fixna(d.y) + ')'
+      })
+    },
+    fixna(x) {
+      if (isFinite(x)) return x;
+      return 0;
+    },
   },
   watch: {
-    // graphData: {
-    //   deep: true,
-    //   handler(nv) {
-    //     this.updateGraph(nv);
-    //   },
-    // },
     doc() {
       this.svg.selectAll('g').remove();
       this.updateGraph();
