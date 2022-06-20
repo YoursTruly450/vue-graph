@@ -1,5 +1,12 @@
+@import '@/assets/main.scss';
+
 .graph-view {
   width: calc(100% - 366px);
   height: 100%;
   background-color: transparent;
+}
+
+.node-hovered {
+  opacity: 0.9;
+  transform: scale(1.2);
 }
