@@ -89,7 +89,7 @@ export default {
   },
   computed: {
     isAttrTypeChosen() {
-      return Object.keys(this.attribute).every(key => this.attribute[key] !== '');
+      return this.attribute.type !== '' && this.attribute.name !== '' && (this.attribute.type === 'node' || this.attribute.value !== '');
     },
   },
   methods: {

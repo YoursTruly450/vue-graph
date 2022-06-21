@@ -126,8 +126,7 @@ export default {
           .scaleExtent([.1, 4])
           .on('zoom', (d) => { this.container.attr('transform', d.transform) })
       );
-
-      console.log(this.graphData);
+      
       this.forceSimulation = d3.forceSimulation(this.graphData.nodes)
         .force('charge', d3.forceManyBody().strength(-24000))
         .force('center', d3.forceCenter(width / 2, height / 2))
@@ -240,11 +239,76 @@ export default {
         this.$emit('openDialog', node);
       }
     },
+    updateNodes() {
+
+      this.forceSimulation.nodes(this.graphData.nodes);
+      this.forceSimulation.force('link').links(this.graphData.links);
+      
+      console.log(this.node);
+      this.node = this.node.data(this.graphData.nodes, function (d) { return d.id });
+      console.log(this.node);
+      this.node.exit().remove();
+      console.log(this.node);
+      this.node = this.node
+        .enter()
+        .append('g')
+        .attr('style', 'cursor: pointer;')
+        .attr('transform', function (d) {
+          let cirX = d.x;
+          let cirY = d.y;
+          return 'translate(' + cirX + ',' + cirY + ')';
+        })
+        .call(d3.drag()
+          .on('start', this.dragStarted)
+          .on('drag', this.dragged)
+          .on('end', this.dragEnded)
+        )
+        .merge(this.node);
+      console.log(this.node);
+
+      // this.node = this.node
+      //   .append('circle')
+      //   .attr('r', this.setNodeSize)
+      //   .attr('class', 'node')
+      //   .attr('fill', function (d) { return d.group === 'node' ? 'rgb(46, 137, 183)' : 'rgb(47, 153, 60)' })
+      //   .on('mouseover', this.nodeHover)
+      //   .on('mouseout', this.nodeUnhover)
+      //   .on('click', this.nodeClick)
+      //   .merge(this.node);
+      
+      // this.node
+      //   .append('text')
+      //   .attr('class', 'label-node')
+      //   .attr('x', 20)
+      //   .attr('y', -30)
+      //   .attr('dx', this.setTextOffsetX)
+      //   .attr('dy', 5)
+      //   .attr('style', 'font-size: 12px; line-height: 12px; fill: #fff; pointer-events: none;')
+      //   .text(this.setNodeText);
+
+      this.link = this.link.data(this.graphData.links, function (d) {
+        return d.source.id + '-' + d.target.id;
+      });
+      this.link.exit().remove();
+      this.link = this.link
+        .enter()
+        .append('line')
+        .attr('stroke', '#aaa')
+        .attr('stroke-width', '1px')
+        .merge(this.link);
+
+      this.forceSimulation.nodes(this.graphData.nodes);
+      this.forceSimulation.force('link').links(this.graphData.links);
+    },
   },
   watch: {
-    doc() {
-      this.svg.selectAll('g').remove();
-      this.updateGraph();
+    doc(nv, ov) {
+      if (ov.length === 0 || (ov.length > 0 && nv[0]['@id'] !== ov[0]['@id'])) {
+        this.svg.selectAll('g').remove();
+        this.updateGraph();
+      } else {
+        this.updateNodes();
+      }
     }
   },
 }
