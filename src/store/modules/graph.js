@@ -45,6 +45,7 @@ export default ({
       })
         .then((response) => {
           const doc = response.data;
+          console.log(response.data);
           ctx.commit('updateDoc', doc);
         });
     },

@@ -24,7 +24,6 @@ export default {
       forceSimulation: null,
       link: null,
       node: null,
-      nodeLabels: null,
     };
   },
   computed: {
@@ -153,9 +152,9 @@ export default {
         .enter()
         .append('g')
         .attr('transform', function (d) {
-          let cirX = d.x
-          let cirY = d.y
-          return 'translate(' + cirX + ',' + cirY + ')'
+          let cirX = d.x;
+          let cirY = d.y;
+          return 'translate(' + cirX + ',' + cirY + ')';
         })
         .attr('style', 'cursor: pointer;')
         .call(d3.drag()
@@ -170,7 +169,8 @@ export default {
         .attr('class', 'node')
         .attr('fill', function (d) { return d.group === 'node' ? 'rgb(46, 137, 183)' : 'rgb(47, 153, 60)' })
         .on('mouseover', this.nodeHover)
-        .on('mouseout', this.nodeUnhover);
+        .on('mouseout', this.nodeUnhover)
+        .on('click', this.nodeClick);
 
       this.node
         .append('text')
@@ -181,13 +181,6 @@ export default {
         .attr('dy', 5)
         .attr('style', 'font-size: 12px; line-height: 12px; fill: #fff; pointer-events: none;')
         .text(this.setNodeText);
-      
-      // this.nodeLabels = this.container.append('g')
-      //   .selectAll('text')
-      //   .data(this.graphData.nodes)
-      //   .enter()
-      //   .append('text')
-      //   .text(this.setNodeText)
     },
     dragStarted(event, d) {
       if (!event.active) {
@@ -219,7 +212,7 @@ export default {
     },
     updateNode(node) {
       node.attr('transform', (d) => {
-        return 'translate(' + this.fixna(d.x) + ',' + this.fixna(d.y) + ')'
+        return 'translate(' + this.fixna(d.x) + ',' + this.fixna(d.y) + ')';
       })
     },
     fixna(x) {
@@ -241,6 +234,11 @@ export default {
     },
     nodeUnhover(event) {
       event.target.style = 'transform: scale(1 / 1.2); opacity: 1;';
+    },
+    nodeClick(event, node) {
+      if(node.group === 'node') {
+        this.$emit('openDialog', node);
+      }
     },
   },
   watch: {

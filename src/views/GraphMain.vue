@@ -30,6 +30,13 @@
     </div>
     <graph-view
       :doc="doc"
+      @openDialog="openDialog"
+    />
+    <dialog-component
+      v-if="isDialogOpen"
+      :node="node"
+      @closeDialog="isDialogOpen = false"
+      @setNewNode="setNewNode"
     />
   </div>
 </template>
@@ -38,15 +45,19 @@
 import { mapActions, mapGetters } from 'vuex';
 
 import GraphView from '../components/GraphView.vue';
+import DialogComponent from '../components/DialogComponent.vue';
 
 export default {
   name: 'GraphMain',
   components: {
     GraphView,
+    DialogComponent,
   },
   data() {
     return {
       searchGraph: '',
+      isDialogOpen: false,
+      node: null,
     };
   },
   computed: {
@@ -62,9 +73,21 @@ export default {
     this.fetchDocList();
   },
   methods: {
-    ...mapActions(['fetchDocList', 'fetchDoc']),
+    ...mapActions(['fetchDocList', 'fetchDoc', 'addDocNode', 'addNodeAttribute']),
     selectDoc(doc) {
       this.fetchDoc(doc.name);
+    },
+    openDialog(data) {
+      this.node = data;
+      this.isDialogOpen = true;
+    },
+    setNewNode(data) {
+      this.isDialogOpen = false;
+      if (data.type && data.type === 'node') {
+        this.addDocNode({ node: this.node, attr: data });
+      } else if (data.type && data.type === 'attribute') {
+        this.addNodeAttribute({ node: this.node, attr: data });
+      }
     },
   },
 }
