@@ -71,8 +71,8 @@ export default {
   data() {
     return {
       attribute: {
-        type: '',
-        name: '',
+        type: 'node',
+        name: 'lego:data',
         value: '',
       },
       typeOptions: [

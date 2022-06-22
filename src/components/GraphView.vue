@@ -185,8 +185,8 @@ export default {
       if (!event.active) {
         this.forceSimulation.alphaTarget(0.8).restart();
       }
-      d.fx = d.x;
-      d.fy = d.y;
+      d.fx = event.x;
+      d.fy = event.y;
     },
     dragged(event, d) {
       d.fx = event.x;
@@ -229,10 +229,10 @@ export default {
       return - node.id.split(':')[1].toString().length * 2.5;
     },
     nodeHover(event) {
-      event.target.style = 'transform: scale(1.2); opacity: 0.9;';
+      event.target.style = 'opacity: 0.9;';
     },
     nodeUnhover(event) {
-      event.target.style = 'transform: scale(1 / 1.2); opacity: 1;';
+      event.target.style = 'opacity: 1;';
     },
     nodeClick(event, node) {
       if(node.group === 'node') {
@@ -240,51 +240,42 @@ export default {
       }
     },
     updateNodes() {
-
-      this.forceSimulation.nodes(this.graphData.nodes);
-      this.forceSimulation.force('link').links(this.graphData.links);
       
-      console.log(this.node);
       this.node = this.node.data(this.graphData.nodes, function (d) { return d.id });
-      console.log(this.node);
       this.node.exit().remove();
-      console.log(this.node);
       this.node = this.node
         .enter()
         .append('g')
         .attr('style', 'cursor: pointer;')
-        .attr('transform', function (d) {
-          let cirX = d.x;
-          let cirY = d.y;
-          return 'translate(' + cirX + ',' + cirY + ')';
-        })
         .call(d3.drag()
           .on('start', this.dragStarted)
           .on('drag', this.dragged)
           .on('end', this.dragEnded)
         )
         .merge(this.node);
-      console.log(this.node);
 
-      // this.node = this.node
-      //   .append('circle')
-      //   .attr('r', this.setNodeSize)
-      //   .attr('class', 'node')
-      //   .attr('fill', function (d) { return d.group === 'node' ? 'rgb(46, 137, 183)' : 'rgb(47, 153, 60)' })
-      //   .on('mouseover', this.nodeHover)
-      //   .on('mouseout', this.nodeUnhover)
-      //   .on('click', this.nodeClick)
-      //   .merge(this.node);
-      
-      // this.node
-      //   .append('text')
-      //   .attr('class', 'label-node')
-      //   .attr('x', 20)
-      //   .attr('y', -30)
-      //   .attr('dx', this.setTextOffsetX)
-      //   .attr('dy', 5)
-      //   .attr('style', 'font-size: 12px; line-height: 12px; fill: #fff; pointer-events: none;')
-      //   .text(this.setNodeText);
+      this.node.selectAll('circle').remove();
+
+      this.node
+        .append('circle')
+        .attr('r', this.setNodeSize)
+        .attr('class', 'node')
+        .attr('fill', function (d) { return d.group === 'node' ? 'rgb(46, 137, 183)' : 'rgb(47, 153, 60)' })
+        .on('mouseover', this.nodeHover)
+        .on('mouseout', this.nodeUnhover)
+        .on('click', this.nodeClick);
+
+      this.node.selectAll('text').remove();
+
+      this.node
+        .append('text')
+        .attr('class', 'label-node')
+        .attr('x', 20)
+        .attr('y', -30)
+        .attr('dx', this.setTextOffsetX)
+        .attr('dy', 5)
+        .attr('style', 'font-size: 12px; line-height: 12px; fill: #fff; pointer-events: none;')
+        .text(this.setNodeText);
 
       this.link = this.link.data(this.graphData.links, function (d) {
         return d.source.id + '-' + d.target.id;
