@@ -240,6 +240,24 @@ export default {
       }
     },
     updateNodes() {
+      const width = this.$el.clientWidth;
+      const height = this.$el.clientHeight;
+
+      // this.container = this.svg.append('g');
+
+      // this.svg.call(
+      //   d3.zoom()
+      //     .scaleExtent([.1, 4])
+      //     .on('zoom', (d) => { this.container.attr('transform', d.transform) })
+      // );
+      
+      this.forceSimulation = d3.forceSimulation(this.graphData.nodes)
+        .force('charge', d3.forceManyBody().strength(-24000))
+        .force('center', d3.forceCenter(width / 2, height / 2))
+        .force('x', d3.forceX(width / 2).strength(1))
+        .force('y', d3.forceY(height / 2).strength(1))
+        .force('link', d3.forceLink(this.graphData.links).id((d) => d.id).distance(150).strength(1))
+        .on('tick', this.ticked);
       
       this.node = this.node.data(this.graphData.nodes, function (d) { return d.id });
       this.node.exit().remove();
@@ -288,8 +306,8 @@ export default {
         .attr('stroke-width', '1px')
         .merge(this.link);
 
-      this.forceSimulation.nodes(this.graphData.nodes);
-      this.forceSimulation.force('link').links(this.graphData.links);
+      // this.forceSimulation.nodes(this.graphData.nodes);
+      // this.forceSimulation.force('link').links(this.graphData.links);
     },
   },
   watch: {
